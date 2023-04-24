@@ -27,7 +27,7 @@ echo '<div class="nav">';
 echo '<div class="container-fluid">';
 echo '<div class="row align-items-center justify-content-md-center justify-content-around">';
 
-echo '<div class="col-lg-4 col-3 desktop-hidden">';
+echo '<div class="col-lg-1 col-3">';
 
 echo '<a id="navToggle" class="nav-toggle">';
 echo '<div>';
@@ -39,18 +39,21 @@ echo '</a>';
 
 echo '</div>';
 
-echo '<div class="col-lg-2 col-3">';
+echo '<div class="col-lg-3 col-3">';
 echo '<a href="' . home_url() . '">';
 
 $logo = get_field('logo','options'); 
 if($logo){
-echo wp_get_attachment_image($logo['id'],'full',"",['class'=>'w-100 h-auto','style'=>'max-width:100px;']); 
+echo wp_get_attachment_image($logo['id'],'full',"",[
+	'class'=>'w-100 h-auto',
+	'style'=>''
+]); 
 }
 
 echo '</a>';
 echo '</div>';
 
-echo '<div class="col-8 mobile-hidden">';
+echo '<div class="col-6 mobile-hidden">';
 
 
 wp_nav_menu(array(
