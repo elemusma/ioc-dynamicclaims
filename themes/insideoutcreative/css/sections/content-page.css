@@ -1,0 +1,20 @@
+.testimonial-carousel .owl-nav {
+    margin-bottom: -40px;
+}
+
+.testimonial-carousel button.owl-next,
+.testimonial-carousel button.owl-prev {
+    position: relative;
+    top: unset;
+    left: unset;
+    right: unset;
+    transform: unset;
+}
+
+.row-case-study-list .col:nth-last-child(2) .case-study-dashed-line {
+    display: none !important;
+}
+
+.icon-col svg {
+    fill: white;
+}

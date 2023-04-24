@@ -1,0 +1,95 @@
+.text-white * {
+  color: white;
+}
+
+.text-white a:hover {
+  color: white;
+}
+
+a {
+  color: var(--accent-primary);
+}
+
+.text-accent {
+  color: var(--accent-secondary);
+}
+
+.text-accent-secondary {
+  color: var(--accent-secondary);
+}
+
+.text-accent-tertiary {
+  color: var(--accent-tertiary);
+}
+
+.text-gray {
+  color: #585556;
+}
+
+.text-shadow {
+  text-shadow: 1px 1px 3px black;
+}
+
+.text-black {
+  color: black;
+}
+
+a.text-black:hover {
+  color: black;
+}
+
+.lh-1 {
+  line-height: 1;
+}
+
+.ls-1 {
+  letter-spacing: 1em;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+html,
+body {
+  font-family: "proxima_novaregular";
+}
+
+.light {
+  font-family: "proxima_nova_altlight";
+}
+
+.thin {
+  font-family: "proxima_novathin";
+}
+
+.bold,
+strong {
+  font-family: "proxima_novabold";
+}
+
+blockquote {
+  font-size: 90%;
+}
+
+h1,
+.h1,
+.gotham {
+  font-family: 'gothambold';
+}
+
+h2,
+h2.h3,
+.h2,
+h3,
+.h3 {
+  font-family: 'blairitc_ttlight';
+}
+
+.gotham-thin {
+  font-family: 'gothamthin';
+}
+
+.gotham-thin {
+  font-family: 'gothamthin';
+}

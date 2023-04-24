@@ -1,0 +1,46 @@
+.owl-theme .owl-nav [class*="owl-"]:hover {
+  background: transparent !important;
+}
+.owl-theme .owl-nav [class*="owl-"]:hover {
+  color: #eaeaea !important;
+}
+button.owl-next,
+button.owl-prev {
+  outline: none !important;
+}
+@media screen and (min-width: 992px) {
+  button.owl-next,
+  button.owl-prev {
+    position: absolute;
+    top: 0%;
+  }
+  button.owl-prev {
+    left: 35%;
+    transform: translate(0, -90px);
+  }
+  button.owl-next {
+    right: 35%;
+    transform: translate(0, -90px);
+  }
+}
+
+.owl-prev span,
+.owl-next span {
+  font-size: 4rem;
+}
+/* for background galleries */
+.position-absolute .owl-stage-outer,
+.position-absolute .owl-stage,
+.position-absolute .owl-item {
+  height: 100%;
+}
+
+.lb-nav a.lb-next {
+  background: url('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/images/next.png') right 48% no-repeat !important;
+  opacity: 1 !important;
+}
+.lb-nav a.lb-prev {
+  background: url('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.1/images/prev.png') right 48% no-repeat !important;
+  opacity: 1 !important;
+  width:6%!important;
+}
