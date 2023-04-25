@@ -1,14 +1,17 @@
-.bg-accent-outline {
+.btn-accent-outline {
     border: 2px solid var(--accent-secondary);
     border-radius: 0;
-    padding: 5px 25px;
+    padding: 10px 45px;
     transition: all .25s ease-in-out;
+    cursor: pointer;
+    display: inline-block;
 }
 
-.bg-accent-outline:hover {
+.btn-accent-outline:hover {
     border: 2px solid var(--accent-secondary);
     background: var(--accent-secondary);
     color: white;
+    text-decoration: none;
 }
 
 input#submit,

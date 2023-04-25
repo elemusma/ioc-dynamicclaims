@@ -13,9 +13,9 @@ echo '<section class="position-relative">';
 // echo '<div class="container-fluid">';
 echo '<div class="d-flex flex-md-row flex-wrap">';
 
-$logoFooter = get_field('logo_footer','options'); 
-if($logoFooter){
-echo wp_get_attachment_image($logoFooter['id'],'full',"",['class'=>'h-auto position-absolute z-3 logo','style'=>'width:200px;top:40px;left:50%;transform:translate(-50%,0);']); 
+$logoHome = get_field('logo_home','options'); 
+if($logoHome){
+echo wp_get_attachment_image($logoHome['id'],'full',"",['class'=>'h-auto position-absolute z-3 logo','style'=>'width:200px;top:40px;left:50%;transform:translate(-50%,0);']); 
 }
 
 echo '<a href="' . home_url() . '/contact/" class="position-absolute text-white z-3" style="top:40px;right:25px;">Contact Us</a>';

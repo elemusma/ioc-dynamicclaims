@@ -7,26 +7,26 @@
  get_header();
 
 //  start of header
-echo '<section class="bg-attachment section-hero" style="background:url(' . get_the_post_thumbnail_url() . ');background-size:cover;background-attachment:fixed;padding-top:300px;padding-bottom:100px;">';
+echo '<section class="bg-attachment section-hero" style="background:url(' . get_the_post_thumbnail_url() . ');background-size:cover;background-attachment:fixed;padding-top:400px;padding-bottom:150px;">';
 
 
 echo '<div class="container-fluid">';
 echo '<div class="row">';
-echo '<div class="col-lg-5 col-md-9 col-11 ml-auto p-0">';
-echo '<div class="bg-accent pt-3 pb-3">';
-echo '<h1 class="text-white text-md-center mb-0 thin pl-md-0 pl-3">' . get_the_title() . '</h1>';
-echo '</div>';
+echo '<div class="col-12 text-center">';
+// echo '<div class="bg-accent pt-3 pb-3">';
+echo '<h1 class="text-white mb-0 pl-md-0 pl-3">' . get_the_title() . '</h1>';
+// echo '</div>';
 
 if(have_rows('header_content')): while(have_rows('header_content')): the_row();
-echo '<div class="pt-3 pb-3 pl-md-5 pl-3 pr-md-5 pr-3" style="background:rgba(255,255,255,.6);">';
+// echo '<div class="pt-3 pb-3 pl-md-5 pl-3 pr-md-5 pr-3" style="background:rgba(255,255,255,.6);">';
 
-if(get_sub_field('page_subtitle')):
-echo '<div class="pl-3" style="border-left:3px solid var(--accent-secondary);font-size:130%;">';
+if(get_sub_field('subtitle')):
+echo '<div class="text-accent bold" style="">';
 echo get_sub_field('subtitle');
 echo '</div>';
 endif;
 
-echo '</div>';
+// echo '</div>';
 endwhile; endif;
 
 echo '</div>';

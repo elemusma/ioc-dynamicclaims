@@ -194,6 +194,30 @@ function current_year( $atts, $content = null ) {
 
 add_shortcode( 'currentyear', 'current_year' );
 
+function btn_shortcode( $atts, $content = null ) {
+
+	$a = shortcode_atts( array(
+	
+	'class' => '',
+	
+	'href' => '#',
+	
+	'style' => '',
+	
+	'target' => ''
+	
+	), $atts );
+	
+	// return '<a class="btn-accent-primary" href="' . esc_attr($a['href']) . '" target="' . esc_attr($a['target']) . '">' . $content . '</a>';
+	
+	return '<a class="btn-accent-outline ' . esc_attr($a['class']) . '" href="' . esc_attr($a['href']) . '" style="' . esc_attr($a['style']) . '" target="' . esc_attr($a['target']) . '">' . $content . '</a>';
+	
+	// [button href="#" class="btn-main" style=""]Learn More[/button]
+	
+	}
+	
+	add_shortcode( 'button', 'btn_shortcode' );
+
 
 // ENABLE WOOCOMMERCE
 // add_action('after_setup_theme',function() {
