@@ -58,7 +58,7 @@ echo '<div class="col-6 mobile-hidden">';
 
 wp_nav_menu(array(
     'menu' => 'Primary',
-    'menu_class'=>'menu d-flex flex-wrap list-unstyled justify-content-between mb-0',
+    'menu_class'=>'menu d-flex flex-wrap list-unstyled justify-content-end mb-0',
 	'container' => 'nav',
 	'container_class' => 'your-container-class',
 	'link_class' => 'your-link-class',
@@ -82,7 +82,7 @@ echo '</div>';
 
 // start of mobile menu
 echo '<div id="navMenuOverlay" class="position-fixed z-2"></div>';
-echo '<div class="col-lg-3 col-md-8 col-11 nav-items bg-white desktop-hidden pb-5" id="navItems">';
+echo '<div class="col-lg-3 col-md-8 col-11 nav-items bg-white pb-5" id="navItems">';
 
 echo '<div class="pt-5 pb-5">';
 echo '<div class="close-menu">';
@@ -94,7 +94,10 @@ echo '<a href="' . home_url() . '">';
 
 $logo = get_field('logo','options'); 
 if($logo){
-echo wp_get_attachment_image($logo['id'],'full',"",['class'=>'w-100 h-auto','style'=>'max-width:150px;']);
+echo wp_get_attachment_image($logo['id'],'full',"",[
+	'class'=>'w-100 h-auto',
+	'style'=>'max-width:250px;'
+]);
 }
 
 echo '</a>';

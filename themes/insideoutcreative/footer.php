@@ -9,7 +9,7 @@ echo '<section class="pt-5">';
 echo '<div class="container">';
 echo '<div class="row justify-content-center">';
 echo '<div class="col-lg-6 text-center pb-5">';
-echo '<a href="' . home_url() . '">';
+echo '<a href="' . home_url() . '" class="d-inline-block" data-aos="fade-up">';
 
 $logo = get_field('logo','options'); 
 $logoFooter = get_field('logo_footer','options'); 

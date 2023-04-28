@@ -63,12 +63,12 @@ ul.menu>li>a {
     height: 15px;
 }
 
-@media screen and (min-width:1200px) {
+/* @media screen and (min-width:1200px) {
     ul.menu li:first-child a {
         border: none;
         padding-left: 0;
     }
-}
+} */
 
 /* @media screen and (max-width:1199px) { */
 #navItems ul.menu {
