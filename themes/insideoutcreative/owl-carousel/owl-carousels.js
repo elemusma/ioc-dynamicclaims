@@ -23,6 +23,8 @@ $('.products-carousel').owlCarousel({
         }
     }
 });
+
+
 $('.testimonial-carousel').owlCarousel({
     // center: true,
     loop: false,
@@ -32,6 +34,36 @@ $('.testimonial-carousel').owlCarousel({
     // stagePadding:170,
     autoplay: false,
     autoplayTimeout: 2500,
+    autoplayHoverPause: false,
+    // animateIn: 'fadeIn',
+    // animateOut: 'fadeOut',
+    items: 1
+    // navText : ["<img src='/wp-content/uploads/2021/07/Arrow-Left-Blair-ITC.png' />","<img src='/wp-content/uploads/2021/07/Arrow-Right-Blair-ITC.png' />"],
+    // responsive:{
+    //     0:{
+    //         items:2
+    //     },
+    //     600:{
+    //         items:3
+    //     },
+    //     1000:{
+    //         items:4
+    //     }
+    // }
+});
+
+
+
+
+$('.big-image-carousel').owlCarousel({
+    // center: true,
+    loop: true,
+    margin: 0,
+    nav: false,
+    dots: false,
+    // stagePadding:170,
+    autoplay: true,
+    autoplayTimeout: 3000,
     autoplayHoverPause: false,
     // animateIn: 'fadeIn',
     // animateOut: 'fadeOut',

@@ -805,6 +805,8 @@ class GFFormDisplay {
 	 */
 	public static function get_form_theme_slug( $form ) {
 
+		$form = (array) $form;
+
 		// If form is legacy, return that early to avoid calculating orbital styles.
 		if ( GFCommon::is_legacy_markup_enabled( $form ) ) {
 			$slug = 'legacy';
@@ -1209,8 +1211,7 @@ class GFFormDisplay {
 				$style         = self::is_page_active( $form_id, 1 ) ? '' : "style='display:none;'";
 				$class         = ' ' . rgar( $form, 'firstPageCssClass', '' );
 				$class         = esc_attr( $class );
-				$page_field_id = intval( $form['nextFieldId'] ) - 1;
-				$form_string .= "<div id='gform_page_{$form_id}_1' class='gform_page{$class}' data-js='page-field-id-{$page_field_id}' {$style}>
+				$form_string .= "<div id='gform_page_{$form_id}_1' class='gform_page{$class}' data-js='page-field-id-1' {$style}>
                                     <div class='gform_page_fields'>";
 			}
 
@@ -1366,6 +1367,7 @@ class GFFormDisplay {
 						"if(window['gformRedirect']) {gformRedirect();}" .
 						'}' .
 						"jQuery(document).trigger('gform_post_render', [{$form_id}, current_page]);" .
+						"gform.utils.trigger({ event: 'gform/postRender', native: false, data: { formId: {$form_id}, currentPage: current_page } });" .
 						'} );' .
 						'} );';
 
@@ -1408,7 +1410,10 @@ class GFFormDisplay {
 					add_action( 'gform_preview_footer', $callback );
 				} else {
 					$form_string      .= self::get_form_init_scripts( $form );
-					$init_script_body = "gform.initializeOnLoaded( function() {  jQuery(document).trigger('gform_post_render', [{$form_id}, {$current_page}]) } );";
+					$init_script_body = 'gform.initializeOnLoaded( function() {' .
+						"jQuery(document).trigger('gform_post_render', [{$form_id}, {$current_page}]);" .
+						"gform.utils.trigger({ event: 'gform/postRender', native: false, data: { formId: {$form_id}, currentPage: {$current_page} } });" .
+					'} );';
 					$form_string      .= GFCommon::get_inline_script_tag( $init_script_body );
 				}
 			}
@@ -1480,7 +1485,10 @@ class GFFormDisplay {
 		$form               = RGFormsModel::get_form_meta( $form_id );
 		$form_string        = self::get_form_init_scripts( $form );
 		$current_page       = self::get_current_page( $form_id );
-		$footer_script_body = "gform.initializeOnLoaded( function() { jQuery(document).trigger('gform_post_render', [{$form_id}, {$current_page}]) } );";
+		$footer_script_body = 'gform.initializeOnLoaded( function() {' .
+			"jQuery(document).trigger('gform_post_render', [{$form_id}, {$current_page}]);" .
+			"gform.utils.trigger({ event: 'gform/postRender', native: false, data: { formId: {$form_id}, currentPage: {$current_page} } });" .
+		'} );';
 		$form_string        .= GFCommon::get_inline_script_tag( $footer_script_body );
 
 		/**
@@ -2358,6 +2366,13 @@ class GFFormDisplay {
 			$field->validate( $value, $form );
 		}
 
+		$result = array(
+			'is_valid' => ! $field->failed_validation,
+			'message'  => $field->validation_message,
+		);
+
+		$result = self::validate_character_encoding( $result, $value, $field );
+
 		/**
 		 * Allows custom validation of the field value.
 		 *
@@ -2376,13 +2391,111 @@ class GFFormDisplay {
 		 * @param GF_Field $field    The field currently being validated.
 		 * @param string   $context  The context for the current submission. Possible values: form-submit, api-submit, api-validate.
 		 */
-		$result = gf_apply_filters( array( 'gform_field_validation', $form['id'], $field->id ), array(
-			'is_valid' => ! $field->failed_validation,
-			'message'  => $field->validation_message
-		), $value, $form, $field, $context );
+		$result = gf_apply_filters( array( 'gform_field_validation', $form['id'], $field->id ), $result, $value, $form, $field, $context );
 
 		$field->failed_validation = ! rgar( $result, 'is_valid' );
 		$field->validation_message = rgar( $result, 'message' );
+
+		return $result;
+	}
+
+	/**
+	 * Checks for valid character encoding in the submitted value of the given field.
+	 *
+	 * @since 2.7.14
+	 *
+	 * @param array    $result   {
+	 *     An array containing the validation result properties.
+	 *
+	 *     @type bool  $is_valid The field validation result.
+	 *     @type array $message  The field validation message.
+	 *  }
+	 * @param mixed    $value    The field value currently being validated.
+	 * @param GF_Field $field    The field currently being validated.
+	 *
+	 * @return array
+	 */
+	public static function validate_character_encoding( $result, $value, $field ) {
+		if ( GFCommon::is_empty_array( $value ) || ! in_array( $field->get_input_type(), array( 'textarea', 'text', 'post_title', 'post_content', 'address', 'name' ) ) || ! rgar( $result, 'is_valid' ) ) {
+			return $result;
+		}
+
+		$event = sprintf( '%d()', __METHOD__ );
+		GFCommon::timer_start( $event );
+		GFCommon::log_debug( __METHOD__ . "(): Starting invalid characters validation for field: {$field->label} ({$field->id} - {$field->type})" );
+
+		global $wpdb;
+
+		static $charset;
+
+		if ( is_null( $charset ) ) {
+			$charset = $wpdb->get_col_charset( GFFormsModel::get_entry_meta_table_name(), 'meta_value' );
+			GFCommon::log_debug( __METHOD__ . '(): gf_entry_meta meta_value charset = ' . print_r( $charset, true ) ); //phpcs:ignore
+		}
+
+		static $reflected = array();
+
+		if ( empty( $reflected ) ) {
+			GFCommon::log_debug( __METHOD__ . '(): reflecting methods' );
+			$to_reflect = array( 'check_ascii', 'strip_invalid_text' );
+
+			foreach ( $to_reflect as $name ) {
+				$reflected[ $name ] = new ReflectionMethod( $wpdb, $name );
+				$reflected[ $name ]->setAccessible( true );
+			}
+		}
+
+		if ( ! is_array( $value ) ) {
+			$value = array( $value );
+		}
+
+		$values = array_values( $value );
+
+		$is_ascii = true;
+
+		foreach ( $values as $field_value ) {
+			if ( empty( $field_value ) ) {
+				continue;
+			}
+
+			$is_ascii = $reflected['check_ascii']->invoke( $wpdb, $field_value );
+
+			if ( ! $is_ascii ) {
+				break;
+			}
+		}
+
+		if ( $is_ascii ) {
+			GFCommon::log_debug( __METHOD__ . sprintf( '(): Completed in %F seconds. Value is valid ascii', GFCommon::timer_end( $event ) ) );
+
+			return $result;
+		}
+
+		foreach ( $values as $field_value ) {
+			$data = array(
+				'value'   => $field_value,
+				'charset' => $charset,
+				'ascii'   => false,
+				'length'  => false,
+			);
+
+			$log_value = json_encode( $field_value, JSON_INVALID_UTF8_SUBSTITUTE ); //phpcs:ignore
+			if ( ! $log_value ) {
+				$log_value = $field_value;
+			}
+
+			$data_check = $reflected['strip_invalid_text']->invoke( $wpdb, array( $data ) );
+
+			if ( ! is_wp_error( $data_check ) && $data_check[0]['value'] != $field_value ) {
+				$result['is_valid'] = false;
+				$result['message']  = esc_html__( 'The text entered contains invalid characters.', 'gravityforms' );
+				GFCommon::log_debug( __METHOD__ . '(): Value to validate = ' . $log_value );
+				GFCommon::log_debug( __METHOD__ . '(): Value contains invalid characters. Cleaned value = ' . json_encode( $data_check[0]['value'] ) ); //phpcs:ignore
+				break;
+			}
+		}
+
+		GFCommon::log_debug( __METHOD__ . sprintf( '(): Completed in %F seconds.', GFCommon::timer_end( $event ) ) );
 
 		return $result;
 	}
@@ -3248,10 +3361,12 @@ class GFFormDisplay {
 			"window['gf_number_format'] = '" . $number_format . "';" .
 
 			'jQuery(document).ready(function(){' .
+			"gform.utils.trigger({ event: 'gform/conditionalLogic/init/start', native: false, data: { formId: {$form['id']}, fields: null, isInit: true } });" .
             "window['gformInitPriceFields']();" .
 	        "gf_apply_rules({$form['id']}, " . json_encode( $fields_with_logic ) . ', true);' .
 			"jQuery('#gform_wrapper_{$form['id']}').show();" .
 			"jQuery(document).trigger('gform_post_conditional_logic', [{$form['id']}, null, true]);" .
+			"gform.utils.trigger({ event: 'gform/conditionalLogic/init/end', native: false, data: { formId: {$form['id']}, fields: null, isInit: true } });" .
 
 			'} );' .
 
@@ -4581,7 +4696,7 @@ class GFFormDisplay {
 
 		$confirmation_message = rgar( $form['confirmation'], 'message' );
 
-		$confirmation            = "<div id='gform_confirmation_wrapper_{$form['id']}' class='form_saved_message_sent gform_confirmation_wrapper {$css_class} gform_wrapper' role='alert' {$form_theme}><span>{$confirmation_message}</span></div>";
+		$confirmation            = "<div id='gform_confirmation_wrapper_{$form['id']}' class='form_saved_message_sent gform_confirmation_wrapper {$css_class} gform_wrapper' role='alert' {$form_theme}>{$confirmation_message}</div>";
 		$nl2br                   = rgar( $form['confirmation'], 'disableAutoformat' ) ? false : true;
 		$save_email_confirmation = self::replace_save_variables( $confirmation, $form, $resume_token, $resume_email );
 		$save_email_confirmation = GFCommon::replace_variables( $save_email_confirmation, $form, $entry, false, true, $nl2br );

@@ -27,7 +27,6 @@ if (!class_exists('MCWPAction')) :
 			} else {
 				MCAccount::setup($this->settings);
 			}
-			##ENABLECACHE##
 		}
 
 		public function deactivate() {

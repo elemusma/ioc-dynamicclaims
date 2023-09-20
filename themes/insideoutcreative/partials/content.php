@@ -15,18 +15,25 @@ if($layout == 'Content + Image'){
 
     $imageSide = get_sub_field('image_side');
 
-    echo '<div class="row justify-content-end align-items-center">';
+	if($imageSide == 'Left') {
+	    echo '<div class="row flex-row-reverse justify-content-end">';		
+	} else {
+		echo '<div class="row justify-content-end">';
+	}
+
 
     echo '<div class="col-lg-4 ' . get_sub_field('content_col_classes') . '" style="' . get_sub_field('content_col_style') . '">';
-    echo '<div data-aos="fade-up">';
+    echo '<div data-aos="fade-up" class="d-flex h-100 align-items-center">';
+	echo '<div>';
     echo get_sub_field('content');
+	echo '</div>';
     echo '</div>';
     echo '</div>';
 
     echo '<div class="col-lg-1"></div>';
 
     echo '<div class="col-lg-6 text-center ' . get_sub_field('content_col_classes') . '" style="' . get_sub_field('content_col_style') . '">';
-    echo '<div data-aos="fade-up">';
+    echo '<div data-aos="fade-up" class="h-100">';
     
     if(have_rows('image_block_clone')): while(have_rows('image_block_clone')): the_row();
 
@@ -76,6 +83,25 @@ if($layout == 'Content + Image'){
     echo '<section class="position-relative content-image ' . get_sub_field('classes') . '" style="padding:100px 0;' . get_sub_field('style') . '" id="' . get_sub_field('id') . '">';
 
         echo get_template_part('partials/bg-img');
+	
+	$gallery = get_sub_field('gallery');
+	
+	if( $gallery ): 
+	echo '<div class="big-image-carousel owl-carousel owl-theme">';
+	foreach( $gallery as $image ):
+	// 	echo '<div class="col-lg-3 col-md-4 col-6 col col-portfolio mt-3 mb-3 overflow-h">';
+	echo '<div class="position-relative">';
+	// 	echo '<a href="' . wp_get_attachment_image_url($image['id'], 'full') . '" data-lightbox="image-set" data-title="' . $image['title'] . '">';
+	echo wp_get_attachment_image($image['id'], 'full','',[
+		'class'=>'w-100 img-portfolio',
+		'style'=>'height:600px;object-fit:cover;'
+	] );
+	// 	echo '</a>';
+	echo '</div>';
+	// 	echo '</div>';
+	endforeach; 
+	echo '</div>';
+	endif;
 
         $img = get_sub_field('image');
 
@@ -138,26 +164,23 @@ echo '</div>';
 if( $relationship ):
     echo '<div class="row justify-content-center">';
     $counter = 0;
+	$newCounter = 0;
 foreach( $relationship as $post ): 
 // Setup this post for WP functions (variable must be named $post).
 setup_postdata($post);
 $counter++;
+$newCounter++;
 
 if($counter > 3){
     $counter = 1;
 }
 
-// echo $counter;
 
-// if($counter-4 == 0) {
-//     echo '<div class="col-md-6 text-white mb-4">';
-// } else {
-    echo '<div class="col-md-4 text-white mb-4">';
-    // echo '</div>';
-// }
+echo '<div class="col-md-4 text-white mb-4 col-services">';
+
 echo '<div class="position-relative pr-4 pl-4 h-100 d-flex align-items-end col-services" style="background:rgba(0,0,0,.45);" data-aos="fade-up" data-aos-delay="' . $counter . '00">';
 
-echo '<a class="position-absolute w-100 h-100 bg-accent-quaternary d-flex align-items-center justify-content-center z-2 col-services-link" style="top:0;left:0;border:4px solid var(--accent-tertiary);opacity:0;pointer-events:none;text-decoration:none;">';
+echo '<a href="' . get_the_permalink() . '" class="position-absolute w-100 h-100 bg-accent-quaternary d-flex align-items-center justify-content-center z-2 col-services-link" style="top:0;left:0;border:4px solid var(--accent-tertiary);opacity:0;pointer-events:none;text-decoration:none;">';
 // echo '<a href="' . get_the_permalink() . '" class="position-absolute w-100 h-100 bg-accent-quaternary d-flex align-items-center justify-content-center z-2 col-services-link" style="top:0;left:0;border:4px solid var(--accent-tertiary);opacity:0;pointer-events:none;text-decoration:none;">';
 
 echo '<div class="text-left pl-4 pr-4 small">';
@@ -170,7 +193,7 @@ echo '</div>';
 echo '</a>';
 
 echo '<div class="w-100">';
-echo '<span class="h1 d-inline-block" style="padding-bottom:100px;">' . str_pad($counter, 2, '0', STR_PAD_LEFT) . '</span>';
+echo '<span class="h1 d-inline-block" style="padding-bottom:100px;">' . str_pad($newCounter, 2, '0', STR_PAD_LEFT) . '</span>';
 
 echo '<div class="row align-items-baseline">';
 echo '<div class="col-md-2 pb-lg-0 pb-3 text-white">';
@@ -188,6 +211,8 @@ echo '</div>';
 
 echo '</div>';
 echo '</div>';
+	
+	
 echo '</div>';
 endforeach;
 // Reset the global post object so that the rest of the page works correctly.
@@ -203,6 +228,23 @@ endwhile; endif;
 // end of services
 
     // echo '</section>';
+    endwhile; endif;
+} elseif($layout == 'Popup') {
+    if(have_rows('popup_group')): while(have_rows('popup_group')): the_row();
+	
+// popup content
+echo '<div class="modal-content ' . get_sub_field('id_class') . ' position-fixed w-100 h-100 z-3" style="opacity:0;">';
+echo '<div class="bg-overlay"></div>';
+echo '<div class="bg-content">';
+echo '<div class="bg-content-inner">';
+echo '<div class="close" id="">X</div>';
+echo '<div>';
+echo get_sub_field('content');
+echo '</div>';
+echo '</div>';
+
+echo '</div>';
+echo '</div>';
     endwhile; endif;
 }
 

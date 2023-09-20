@@ -47,15 +47,15 @@ add_action('wp_enqueue_scripts', 'dynamicclaims_stylesheets');
 function dynamicclaims_stylesheets_footer() {
 	// wp_enqueue_style('style-footer', get_theme_file_uri('/css/style-footer.css'));
 	// owl carousel
-	// wp_enqueue_style('owl.carousel.min', get_theme_file_uri('/owl-carousel/owl.carousel.min.css'));
-	// wp_enqueue_style('owl.theme.default', get_theme_file_uri('/owl-carousel/owl.theme.default.min.css'));
+	wp_enqueue_style('owl.carousel.min', get_theme_file_uri('/owl-carousel/owl.carousel.min.css'));
+	wp_enqueue_style('owl.theme.default', get_theme_file_uri('/owl-carousel/owl.theme.default.min.css'));
 	// wp_enqueue_style('lightbox-css', get_theme_file_uri('/lightbox/lightbox.min.css'));
 	// wp_enqueue_script('font-awesome', '//use.fontawesome.com/fff80caa08.js');
 
 	// owl carousel
-	// wp_enqueue_script('jquery-min', get_theme_file_uri('/owl-carousel/jquery.min.js'));
-	// wp_enqueue_script('owl-carousel', get_theme_file_uri('/owl-carousel/owl.carousel.min.js'));
-	// wp_enqueue_script('owl-carousel-custom', get_theme_file_uri('/owl-carousel/owl-carousels.js'));
+	wp_enqueue_script('jquery-min', get_theme_file_uri('/owl-carousel/jquery.min.js'));
+	wp_enqueue_script('owl-carousel', get_theme_file_uri('/owl-carousel/owl.carousel.min.js'));
+	wp_enqueue_script('owl-carousel-custom', get_theme_file_uri('/owl-carousel/owl-carousels.js'));
 	// wp_enqueue_script('lightbox-min-js', get_theme_file_uri('/lightbox/lightbox.min.js'));
 	// wp_enqueue_script('lightbox-js', get_theme_file_uri('/lightbox/lightbox.js'));
     // aos
@@ -201,71 +201,35 @@ function btn_shortcode( $atts, $content = null ) {
 	
 	'class' => '',
 	
-	'href' => '#',
+	'href' => '',
 	
 	'style' => '',
 	
-	'target' => ''
+	'target' => '',
+
+	'id' => '',
+	
+	'aria-label' => ''
 	
 	), $atts );
-	
-	// return '<a class="btn-accent-primary" href="' . esc_attr($a['href']) . '" target="' . esc_attr($a['target']) . '">' . $content . '</a>';
-	
-	return '<a class="btn-accent-outline ' . esc_attr($a['class']) . '" href="' . esc_attr($a['href']) . '" style="' . esc_attr($a['style']) . '" target="' . esc_attr($a['target']) . '">' . $content . '</a>';
+
+	$id = esc_attr($a['id']);
+
+	// Check if the ID contains the word "modal"
+	if (strpos($id, 'modal') !== false) {
+		return '<span class="btn-accent-outline ' . esc_attr($a['class']) . '" aria-label="' . esc_attr($a['aria-label']) . '" style="' . esc_attr($a['style']) . '" target="' . esc_attr($a['target']) . '" id="' . esc_attr($a['id']) . '">' . $content . '</span>';
+	} else {
+		return '<a class="btn-accent-outline ' . esc_attr($a['class']) . '" href="' . esc_attr($a['href']) . '" style="' . esc_attr($a['style']) . '" target="' . esc_attr($a['target']) . '" id="' . esc_attr($a['id']) . '">' . $content . '</a>';
+	}
 	
 	// [button href="#" class="btn-main" style=""]Learn More[/button]
 	
 	}
 	
-	add_shortcode( 'button', 'btn_shortcode' );
+add_shortcode( 'button', 'btn_shortcode' );
 
-
-// ENABLE WOOCOMMERCE
-// add_action('after_setup_theme',function() {
-//     add_theme_support('woocommerce');
-// });
-// add_theme_support('wc-product-gallery-zoom');
-// add_theme_support('wc-product-gallery-lightbox');
-// add_theme_support('wc-product-gallery-slider');
-
-
-// WOOCOMMERCE CONTENT WITH NO SIDEBAR
-// add_action('woocommerce_before_main_content','add_container_class',9);
-// function add_container_class(){
-// echo '<div class="container pt-5 pb-5">';
-// echo '<div class="row justify-content-center">';
-// echo '<div class="col-md-12">';
-// }
-
-// add_action('woocommerce_after_main_content','close_container_class',9);
-// function close_container_class(){
-// echo '</div>';
-// echo '</div>';
-// echo '</div>';
-// }
-
-// removes sidebar
-// remove_action('woocommerce_sidebar','woocommerce_get_sidebar');
-
-
-
-// WOOCOMMERCE CONTENT WITH CUSTOM SIDEBAR
-// add_action('woocommerce_before_main_content','add_container_class',9);
-// function add_container_class(){
-// echo '<div class="container pt-5 pb-5" style="">';
-// echo '<div class="row">';
-
-// echo get_template_part('partials/sidebar');
-
-// echo '<div class="col-md-9 order-1 order-md-2">';
-// }
-
-// add_action('woocommerce_after_main_content','close_container_class',9);
-// function close_container_class(){
-// echo '</div>';
-// echo '</div>';
-// echo '</div>';
-// }
-
-// removes sidebar
-// remove_action('woocommerce_sidebar','woocommerce_get_sidebar');
+function my_page_title_shortcode() {
+    return get_the_title();
+	// [page_title]
+}
+add_shortcode('page_title', 'my_page_title_shortcode');

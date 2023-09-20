@@ -10,3 +10,13 @@ Theme Author URI: https://insideoutcreative.com/
     --primary:#f26522;
     --secondary:#0f2849;
 }
+
+.logged-in header.position-fixed {
+    margin-top: 32px;
+}
+
+@media only screen and (max-width:767px) {
+    .logged-in header.position-fixed {
+        margin-top: 45px;
+    }
+}

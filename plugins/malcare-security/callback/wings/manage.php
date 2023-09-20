@@ -6,7 +6,7 @@ class BVManageCallback extends BVCallbackBase {
 	public $settings;
 	public $skin;
 
-	const MANAGE_WING_VERSION = 1.1;
+	const MANAGE_WING_VERSION = 1.3;
 
 	public function __construct($callback_handler) {
 		$this->settings = $callback_handler->settings;
@@ -418,8 +418,11 @@ class BVManageCallback extends BVCallbackBase {
 	function upgradePlugins($plugins, $has_bv_skin = false, $bv_bulk_upgrade = false) {
 		$result = array();
 		$_plugins = array();
+		$plugins_by_name = array();
 		foreach ($plugins as $plugin) {
 			$_plugins[$plugin['file']] = $plugin['package'];
+			$plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $plugin['file'], false, true);
+			$plugins_by_name[$plugin_data['Name']] = $plugin['file'];
 		}
 		if (empty(array_keys($_plugins))) {
 			return $result;
@@ -427,7 +430,7 @@ class BVManageCallback extends BVCallbackBase {
 		if (class_exists('Plugin_Upgrader')) {
 			if ($has_bv_skin) {
 				require_once( "bv_upgrader_skin.php" );
-				$skin = new BVUpgraderSkin("plugin_upgrade");
+				$skin = new BVUpgraderSkin("plugin_upgrade", $plugins_by_name);
 				$this->skin = $skin;
 			} else {
 				$skin = new Bulk_Plugin_Upgrader_Skin();
@@ -605,12 +608,12 @@ class BVManageCallback extends BVCallbackBase {
 			return array('status' => "Error", 'message' => "No package is sent");
 		}
 		$valid_domain_regex = "/^(http|https):\/\/[\-\w]*\.(blogvault\.net|w\.org|wp\.org|wordpress\.org)\//";
-		if (preg_match($valid_domain_regex, $params['package']) !== 1) {
+		if (MCHelper::safePregMatch($valid_domain_regex, $params['package']) !== 1) {
 			return array('status' => "Error", 'message' => "Invalid package domain");
 		}
 		if ($has_bv_skin) {
 			require_once( "bv_upgrader_skin.php" );
-			$skin = new BVUpgraderSkin("installer", $params['package']);
+			$skin = new BVUpgraderSkin("installer", array(), $params['package']);
 			$this->skin = $skin;
 		} else {
 			$skin = new WP_Upgrader_Skin();
@@ -674,6 +677,86 @@ class BVManageCallback extends BVCallbackBase {
 		}
 	}
 
+	public function refreshPluginUpdates() {
+		global $wp_current_filter;
+		$wp_current_filter[] = 'load-update-core.php';
+
+		wp_update_plugins();
+
+		array_pop($wp_current_filter);
+
+		wp_update_plugins();
+
+		return true;
+	}
+
+	public function refreshThemeUpdates() {
+		global $wp_current_filter;
+		$wp_current_filter[] = 'load-update-core.php';
+
+		wp_update_themes();
+
+		array_pop($wp_current_filter);
+
+		wp_update_themes();
+
+		return true;
+	}
+
+	function upgradeWoocommerceDb() {
+		if (!defined('WC_ABSPATH')) {
+			return array('status' => 'Error', 'error' => 'WC not found');
+		}
+
+		if (file_exists(WC_ABSPATH . 'includes/class-wc-install.php')) {
+			include_once WC_ABSPATH . 'includes/class-wc-install.php';
+		}
+
+		if (file_exists(WC_ABSPATH . 'includes/wc-update-functions.php')) {
+			include_once WC_ABSPATH . 'includes/wc-update-functions.php';
+		}
+
+		if (!class_exists('WC_Install') || !method_exists('WC_Install', 'needs_db_update') ||
+				!method_exists('WC_Install', 'get_db_update_callbacks')) {
+			return array('status' => 'Error', 'error' => 'WC files missing or corrupted');
+		}
+
+		$current_db_version = $this->settings->getOption('woocommerce_db_version');
+		if (!$current_db_version) {
+			return array('status' => 'Error', 'error' => 'Current WC DB version not available');
+		}
+
+		$db_update_callbacks = WC_Install::get_db_update_callbacks();
+
+		$loop = 0;
+		foreach ($db_update_callbacks as $version => $update_callbacks) {
+			if (version_compare($current_db_version, $version, '<')) {
+				foreach ($update_callbacks as $update_callback) {
+					WC()->queue()->schedule_single(
+						time() + $loop,
+						'woocommerce_run_update_callback',
+						array('update_callback' => $update_callback),
+						'woocommerce-db-updates'
+					);
+					$loop++;
+				}
+			}
+		}
+
+		$current_wc_version = WC()->version;
+		if (version_compare($current_db_version, $current_wc_version, '<') &&
+				!WC()->queue()->get_next('woocommerce_update_db_to_current_version')) {
+			WC()->queue()->schedule_single(
+				time() + $loop,
+				'woocommerce_update_db_to_current_version',
+				array('version' => $current_wc_version),
+				'woocommerce-db-updates'
+			);
+		}
+
+		return array('status' => 'Done');
+	}
+
 	function upgrade_db(){
 		if (function_exists('wp_upgrade')) {
 			wp_upgrade();
@@ -702,6 +785,23 @@ class BVManageCallback extends BVCallbackBase {
 			$bv_bulk_upgrade = array_key_exists('bv_bulk_update', $params['args']);
 			$resp = array("upgrades" => $this->upgrade($params['args'], $has_bv_skin, $bv_bulk_upgrade));
 			break;
+		case "cmbneupgrde":
+			$args = $params['args'];
+			$has_bv_skin = array_key_exists('bvskin', $args);
+			$bv_bulk_upgrade = array_key_exists('bv_bulk_update', $args);
+
+			$resp['upgrades'] = $this->upgrade($args['upgrades'], $has_bv_skin, $bv_bulk_upgrade);
+
+			if (isset($args['delete_transient'])) {
+				$resp['delete_transient'] = $this->settings->deleteTransient($args['delete_transient']);
+			}
+			if (isset($args['wp_update_plugins'])) {
+				$resp['wp_update_plugins'] = $this->refreshPluginUpdates();
+			}
+			if (isset($args['wp_update_themes'])) {
+				$resp['wp_update_themes'] = $this->refreshThemeUpdates();
+			}
+			break;
 		case "edt":
 			$resp = array("edit" => $this->edit($params['args']));
 			break;
@@ -726,6 +826,19 @@ class BVManageCallback extends BVCallbackBase {
 			break;
 		case "updatedb":
 			$resp = array("status" => $this->upgrade_db());
+			break;
+		case "updateplgndb":
+			$resp = array();
+			$files = $params['files'];
+
+			foreach ($files as $file) {
+				switch ($file) {
+					case "woocommerce/woocommerce.php":
+						$resp[$file] = $this->upgradeWoocommerceDb();
+						break;
+				}
+			}
+
 			break;
 		default:
 			$resp = false;

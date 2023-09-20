@@ -54,3 +54,16 @@ button[type=submit] {
 button[type=submit]:hover {
   background: var(--accent-secondary);
 }
+
+input[type="radio"],input[type="checkbox"] {
+    width: auto;
+    box-shadow: none !important;
+}
+
+label.gform-field-label--type-inline {
+    margin-top: 0;
+}
+
+input.datepicker {
+    width: 100% !important;
+}

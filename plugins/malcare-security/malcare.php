@@ -5,7 +5,7 @@ Plugin URI: https://www.malcare.com
 Description: MalCare WordPress Security Plugin - Malware Scanner, Cleaner, Security Firewall
 Author: MalCare Security
 Author URI: https://www.malcare.com
-Version: 4.97
+Version: 5.25
 Network: True
  */
 
@@ -37,6 +37,7 @@ require_once dirname( __FILE__ ) . '/wp_api.php';
 require_once dirname( __FILE__ ) . '/wp_actions.php';
 require_once dirname( __FILE__ ) . '/info.php';
 require_once dirname( __FILE__ ) . '/account.php';
+require_once dirname( __FILE__ ) . '/helper.php';
 ##WPCACHEMODULE##
 
 
@@ -113,10 +114,10 @@ if ((array_key_exists('bvplugname', $_REQUEST)) && ($_REQUEST['bvplugname'] == "
 		$account = MCAccount::find($bvsettings, $pubkey);
 	}
 
-	$request = new BVCallbackRequest($account, $_REQUEST);
+	$request = new BVCallbackRequest($account, $_REQUEST, $bvsettings);
 	$response = new BVCallbackResponse($request->bvb64cksize);
 
-	if ($account && (1 === $account->authenticate($request))) {
+	if ($request->authenticate() === 1) {
 		define('MCBASEPATH', plugin_dir_path(__FILE__));
 
 
@@ -124,13 +125,7 @@ if ((array_key_exists('bvplugname', $_REQUEST)) && ($_REQUEST['bvplugname'] == "
 
 		$params = $request->processParams($_REQUEST);
 		if ($params === false) {
-			$resp = array(
-				"account_info" => $account->info(),
-				"request_info" => $request->info(),
-				"bvinfo" => $bvinfo->info(),
-				"statusmsg" => "BVPRMS_CORRUPTED"
-			);
-			$response->terminate($resp);
+			$response->terminate($request->corruptedParamsResp());
 		}
 		$request->params = $params;
 		$callback_handler = new BVCallbackHandler($bvdb, $bvsettings, $bvsiteinfo, $request, $account, $response);
@@ -143,15 +138,7 @@ if ((array_key_exists('bvplugname', $_REQUEST)) && ($_REQUEST['bvplugname'] == "
 			$callback_handler->execute();
 		}
 	} else {
-		$resp = array(
-			"account_info" => $account ? $account->info() : array("error" => "ACCOUNT_NOT_FOUND"),
-			"request_info" => $request->info(),
-			"bvinfo" => $bvinfo->info(),
-			"statusmsg" => "FAILED_AUTH",
-			"api_pubkey" => substr(MCAccount::getApiPublicKey($bvsettings), 0, 8),
-			"def_sigmatch" => substr(MCAccount::getSigMatch($request, MCRecover::getDefaultSecret($bvsettings)), 0, 8)
-		);
-		$response->terminate($resp);
+		$response->terminate($request->authFailedResp());
 	}
 } else {
 	if ($bvinfo->hasValidDBVersion()) {
